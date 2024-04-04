@@ -17,6 +17,7 @@ app.get("/", (req, res) => {
   res.json("hello");
 });
 
+//READ
 app.get("/books", (req, res) => {
   const q = "SELECT * FROM books";
   db.query(q, (err, data) => {
@@ -28,6 +29,7 @@ app.get("/books", (req, res) => {
   });
 });
 
+//CREATE
 app.post("/insertbook", (req, res) => {
   const q = "INSERT INTO books(`title`, `desc`, `price`, `cover`) VALUES (?)";
 
@@ -44,6 +46,7 @@ app.post("/insertbook", (req, res) => {
   });
 });
 
+//DELETE
 app.delete("/delbook/:id", (req, res) => {
   const bookId = req.params.id;
   const q = " DELETE FROM books WHERE id = ? ";
@@ -54,50 +57,24 @@ app.delete("/delbook/:id", (req, res) => {
   });
 });
 
-/* app.put("/updatebook/:id", (req, res) => {
-  const bookId = req.params.id;
-  const q = "UPDATE books SET `title`= ?, `desc`= ?, `price`= ?, `cover`= ? WHERE id = ?";
-
-  const values = [
-    req.body.title,
-    req.body.desc,
-    req.body.price,
-    req.body.cover,
-  ];
-
-  db.query(q, [...values,bookId], (err, data) => {
-    if (err) return res.send(err);
-    return res.json(data);
-  });
-});
-
-app.listen(8800, () => {
-  console.log("Connected to backend.");
-}); */
+//UPDATE
 app.put("/updatebook/:id", (req, res) => {
   const bookId = req.params.id;
   const fieldsToUpdate = {};
   const values = [];
 
-  // Verifica quais campos foram enviados na requisição e adiciona ao objeto fieldsToUpdate
-  if (req.body.title) {
-    fieldsToUpdate.title = req.body.title;
-    values.push(req.body.title);
-  }
-  if (req.body.desc) {
-    fieldsToUpdate.desc = req.body.desc;
-    values.push(req.body.desc);
-  }
-  if (req.body.price) {
-    fieldsToUpdate.price = req.body.price;
-    values.push(req.body.price);
-  }
-  if (req.body.cover) {
-    fieldsToUpdate.cover = req.body.cover;
-    values.push(req.body.cover);
-  }
+  // Definir os campos que podem ser atualizados
+  const allowedFields = ['title', 'desc', 'price', 'cover'];
 
-  // Constrói a consulta SQL dinamicamente
+  // Percorrer as chaves do objeto req.body e verificar se elas estão presentes nos campos permitidos
+  Object.keys(req.body).forEach((key) => {
+    if (allowedFields.includes(key)) {
+      fieldsToUpdate[key] = req.body[key];
+      values.push(req.body[key]);
+    }
+  });
+
+  // Construir a consulta SQL dinamicamente
   let query = "UPDATE books SET ";
   const fields = Object.keys(fieldsToUpdate);
   fields.forEach((field, index) => {
@@ -110,12 +87,13 @@ app.put("/updatebook/:id", (req, res) => {
 
   values.push(bookId);
 
-  // Executa a consulta SQL
+  // Executar a consulta SQL
   db.query(query, values, (err, data) => {
     if (err) return res.send(err);
     return res.json(data);
   });
 });
+
 
 app.listen(8800, () => {
   console.log("Connected to backend.");
